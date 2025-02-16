@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 def load_dataset(file_path, tokenizer, block_size=128):
     """
-    Create a TextDataset instance using the provided text data.
+    Create a TextDataset instance using text data from file_path.
     """
     dataset = TextDataset(
         tokenizer=tokenizer,
@@ -17,17 +17,17 @@ def load_dataset(file_path, tokenizer, block_size=128):
     )
     return dataset
 
-def train_model(data_file, output_dir='./trained_model', epochs=5, batch_size=4):
+def train_model(data_file, output_dir='./trained_model', epochs=10, batch_size=4):
     """
-    Fine-tunes GPT-2 on text data collected from multiple open source websites. ok?
-    The fine-tuned model is saved in the output directory.
+    Fine-tunes GPT-2 on text data collected from a variety of sources, including full Wikipedia articles.
+    Saves the fine-tuned model to the output directory.
     """
     model_name = "gpt2"
-    logger.info("Loading tokenizer and model")
+    logger.info("Loading tokenizer and model...")
     tokenizer = GPT2Tokenizer.from_pretrained(model_name)
     model = GPT2LMHeadModel.from_pretrained(model_name)
 
-    logger.info(f"Loading dataset from {data_file}")
+    logger.info(f"Loading dataset from {data_file}...")
     dataset = load_dataset(data_file, tokenizer)
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
 
@@ -41,6 +41,7 @@ def train_model(data_file, output_dir='./trained_model', epochs=5, batch_size=4)
         logging_steps=200,
         learning_rate=5e-5,
         weight_decay=0.01,
+        warmup_steps=200,
     )
 
     logger.info("Starting training...")
