@@ -12,10 +12,11 @@ def scrape_data(url):
     Extracts paragraphs, headers, and list items.
     """
     try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status() 
+        response = requests.get(url, timeout=15)
+        response.raise_for_status()  # raises exception for HTTP errors
         soup = BeautifulSoup(response.text, 'html.parser')
-
+        
+        # Gather text from tags that usually contain content.
         tags = soup.find_all(['p', 'h1', 'h2', 'h3', 'li'])
         text = "\n".join(tag.get_text(strip=True) for tag in tags)
         logger.info(f"Scraped {len(text)} characters from {url}")
@@ -24,9 +25,10 @@ def scrape_data(url):
         logger.error(f"Error scraping {url}: {e}")
         return ""
 
-def scrape_multiple_sources(urls, max_workers=5):
+def scrape_multiple_sources(urls, max_workers=10):
     """
     Scrape multiple URLs concurrently using a thread pool.
+    Returns a combined string of all content.
     """
     results = []
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -39,15 +41,22 @@ def scrape_multiple_sources(urls, max_workers=5):
                     results.append(data)
             except Exception as e:
                 logger.error(f"Error in future for {url}: {e}")
-    return "\n".join(results)
+    return "\n\n".join(results)
 
 if __name__ == "__main__":
+    # Example URLs from open source, technology, and Wikipedia sources.
     urls = [
         "https://opensource.com/article/21/6/what-open-source",
         "https://opensource.com/resources",
         "https://www.linuxfoundation.org/",
         "https://www.apache.org/",
-        "https://www.eclipse.org/"
+        "https://www.eclipse.org/",
+        "https://opensource.guide/",
+        "https://www.fsf.org/",
+        "https://en.wikipedia.org/wiki/Open-source",
+        "https://en.wikipedia.org/wiki/Free_software",
+        "https://en.wikipedia.org/wiki/Software_license",
+        "https://en.wikipedia.org/wiki/Computer_programming"
     ]
     combined_data = scrape_multiple_sources(urls)
     with open("data.txt", "w", encoding="utf-8") as f:
